@@ -1,6 +1,5 @@
 import java.math.BigInteger
 import java.security.MessageDigest
-import java.util.concurrent.ConcurrentHashMap
 
 class ShaXX(
 ) {
@@ -16,6 +15,7 @@ class ShaXX(
         val hash = digest.digest(input.toByteArray())
         val binaryString = BigInteger(1, hash).toString(2).padStart(256, '0')
         return binaryString.takeLast(numBit)
+
     }
 
 }

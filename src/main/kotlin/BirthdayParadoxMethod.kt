@@ -22,16 +22,9 @@ class BirthdayParadoxMethod(
                     val hash = sha.getSHA256Hash(randomString, numBit)
                     val collision = insertAndCheck(hash, randomString)
                     if (collision?.isNotEmpty() == true) {
-                        println("Collision found:\n $randomString -> $hash")
-                        println("$collision -> $hash")
                         return@launch
                     }
                     count++
-                    if (count % 100000 == 0) {
-                        //
-                        println(storage.size)
-                        println("thread N${Thread.currentThread().id} Tried $count times")
-                    }
                 }
             }
         }

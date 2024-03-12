@@ -5,9 +5,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.math.BigInteger
 
-private val K = 8
-private val STRING_SIZE = 15
 class PollardMethod(
+    private val K: Int= 8,
+    private val STRING_SIZE: Int = 15,
+    private val NUM_COLLISIONS: Int = 200,
     private val shaXX: ShaXX = ShaXX(),
     private val numBit: Int,
 ) {
@@ -28,6 +29,9 @@ class PollardMethod(
             return "Thread $threadId tried $numOfIteration times"
         }
     }
+    fun getStorageSize(): Int {
+        return storage.size * (Long.SIZE_BYTES + Int.SIZE_BYTES + numBit)
+    }
     fun checkSpecialPoint(value: String): Boolean {
         return value.first() == '0'
     }
@@ -45,7 +49,8 @@ class PollardMethod(
                     isSearching.set(true)
                     found(storage[hash]!!, Iteration(Thread.currentThread().id, numOfIterations))
                     isSearching.set(false)
-                }            }
+                }
+            }
             else {
                 storage[hash] = Iteration(Thread.currentThread().id, numOfIterations)
             }
@@ -74,7 +79,7 @@ class PollardMethod(
                 synchronized(collisionFile) {
                     collisionFile.appendText(collisionMessage)
                 }
-                if (collisionCount.incrementAndGet() >= 100) {
+                if (collisionCount.incrementAndGet() >= NUM_COLLISIONS) {
                     isFound.set(true)
                     return
                 }
@@ -128,8 +133,3 @@ class PollardMethod(
     }
 
 }
-
-
-
-
-

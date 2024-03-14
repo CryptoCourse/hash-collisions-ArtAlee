@@ -3,7 +3,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 class BirthdayParadoxMethod(
     private val sha: ShaXX = ShaXX(),
-    val storage: ConcurrentHashMap<String, String> = ConcurrentHashMap()
+    val storage: HashMap<String, String> = HashMap(),
+    val collisions : HashMap<String, List<String>> = HashMap()
 )
 {
     fun insertAndCheck(hash: String, input: String): String? {
@@ -11,27 +12,19 @@ class BirthdayParadoxMethod(
             return storage[hash]
         }
         storage[hash] = input
+        collisions[hash] = collisions[hash]?.plus(input) ?: listOf(input)
         return null
     }
-    fun performSearch(size: Int, numBit: Int, numThreads: Int = 4) {
-        val jobs = List(numThreads) {
-            GlobalScope.launch {
-                var count = 0
-                while (isActive) {
-                    val randomString = sha.generateRandomString(size)
-                    val hash = sha.getSHA256Hash(randomString, numBit)
-                    val collision = insertAndCheck(hash, randomString)
-                    if (collision?.isNotEmpty() == true) {
-                        return@launch
-                    }
-                    count++
-                }
-            }
-        }
-
-        runBlocking {
-            jobs.joinAll()
+    fun performSearch(size: Int, numBit: Int) {
+        var collisionCount = 0
+        while (collisions.size < 100){
+            val randomString = sha.generateRandomString(size)
+            val hash = sha.getSHA256Hash(randomString, numBit)
+            val collision = insertAndCheck(hash, randomString)
+           // if (collision?.isNotEmpty() == true) {
+           //     collisionCount++
+           // }
         }
     }
-
 }
+

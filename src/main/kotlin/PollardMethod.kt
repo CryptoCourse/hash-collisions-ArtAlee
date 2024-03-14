@@ -20,6 +20,7 @@ class PollardMethod(
     private val collisionFile = File("collisions.txt")
     private val isFound = AtomicBoolean(false)
     private val isSearching = AtomicBoolean(false)
+    private val collisions = ConcurrentHashMap<String, List<String>>()
     class Iteration(
         val threadId: Long = 0,
         val numOfIteration: Int = 0
@@ -33,7 +34,7 @@ class PollardMethod(
         return storage.size * (Long.SIZE_BYTES + Int.SIZE_BYTES + numBit)
     }
     fun checkSpecialPoint(value: String): Boolean {
-        return value.first() == '0'
+        return value.substring(1, 5).toInt(2) == 0
     }
 
     fun Fi(hash: String): String {
@@ -71,15 +72,16 @@ class PollardMethod(
         var previousVal2 = initVal2
         while (true) {
             if (initVal1.equals(initVal2)) {
-                val image1 = BigInteger(previousVal1, 2)
-                val image2 = BigInteger(previousVal2, 2)
-                val hash1 = BigInteger(initVal1, 2)
-                val hash2 = BigInteger(initVal2, 2)
+                val image1 = BigInteger(previousVal1, 2).toString(16)
+                val image2 = BigInteger(previousVal2, 2).toString(16)
+                val hash1 = BigInteger(initVal1, 2).toString(16)
+                val hash2 = BigInteger(initVal2, 2).toString(16)
+                collisions[hash1] = collisions[hash1]?.plus(image1) ?: listOf(image1, image2)
                 val collisionMessage = "Thread ${greaterIter.threadId} $image1 -> $hash1\nThread ${lesserIter.threadId} $image2 -> $hash2\n\n"
                 synchronized(collisionFile) {
                     collisionFile.appendText(collisionMessage)
                 }
-                if (collisionCount.incrementAndGet() >= NUM_COLLISIONS) {
+                if (collisions.size >= NUM_COLLISIONS) {
                     isFound.set(true)
                     return
                 }
@@ -101,7 +103,7 @@ class PollardMethod(
         return newVal
     }
 
-    fun findCollisions() {
+    fun findCollisions(numCollisions: Int = NUM_COLLISIONS) {
         val startTime = System.currentTimeMillis()
 
         val parentJob = Job()
